@@ -1,0 +1,23 @@
+services:
+  backup-service:
+    build: .
+    image: chunk-backup-service:1.0.0
+    container_name: chunk-backup-service
+    ports:
+      - "8000:8000"
+    environment:
+      DATA_DIR: /data
+      BLOCK_SIZE: "4096"
+      # 生产保持 0；测试合并期间并发追加时可临时调大（秒）。
+      MERGE_PREP_DELAY: "0"
+    volumes:
+      - backup-data:/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  backup-data:
